@@ -1,6 +1,8 @@
 import dotTypes from "../../constants/dotTypes";
 import { DotType, GetNeighbor, DrawArgs, BasicFigureDrawArgs, RotateFigureArgs, Window } from "../../types";
 
+const DOT_ROW_GAP = 4;
+
 export default class QRDot {
   _element?: SVGElement;
   _svg: SVGElement;
@@ -13,7 +15,7 @@ export default class QRDot {
     this._window = window;
   }
 
-  draw(x: number, y: number, size: number, getNeighbor: GetNeighbor): void {
+  draw(x: number, y: number, size: number, getNeighbor: GetNeighbor, isCorner: boolean = false): void {
     const type = this._type;
     let drawFunction;
 
@@ -38,7 +40,7 @@ export default class QRDot {
         drawFunction = this._drawSquare;
     }
 
-    drawFunction.call(this, { x, y, size, getNeighbor });
+    drawFunction.call(this, { x, y, size, getNeighbor, isCorner });
   }
 
   _rotateFigure({ x, y, size, rotation = 0, draw }: RotateFigureArgs): void {
@@ -58,7 +60,7 @@ export default class QRDot {
         this._element = this._window.document.createElementNS("http://www.w3.org/2000/svg", "circle");
         this._element.setAttribute("cx", String(x + size / 2));
         this._element.setAttribute("cy", String(y + size / 2));
-        this._element.setAttribute("r", String(size / 2));
+        this._element.setAttribute("r", String((size - DOT_ROW_GAP) / 2));
       }
     });
   }
@@ -71,9 +73,9 @@ export default class QRDot {
       draw: () => {
         this._element = this._window.document.createElementNS("http://www.w3.org/2000/svg", "rect");
         this._element.setAttribute("x", String(x));
-        this._element.setAttribute("y", String(y));
+        this._element.setAttribute("y", String(y + (args.isCorner ? 0 : DOT_ROW_GAP / 2)));
         this._element.setAttribute("width", String(size));
-        this._element.setAttribute("height", String(size));
+        this._element.setAttribute("height", String(size - (args.isCorner ? 0 : DOT_ROW_GAP)));
       }
     });
   }
@@ -81,6 +83,7 @@ export default class QRDot {
   //if rotation === 0 - right side is rounded
   _basicSideRounded(args: BasicFigureDrawArgs): void {
     const { size, x, y } = args;
+    const newHeight = size - DOT_ROW_GAP;
 
     this._rotateFigure({
       ...args,
@@ -88,10 +91,10 @@ export default class QRDot {
         this._element = this._window.document.createElementNS("http://www.w3.org/2000/svg", "path");
         this._element.setAttribute(
           "d",
-          `M ${x} ${y}` + //go to top left position
-            `v ${size}` + //draw line to left bottom corner
+          `M ${x} ${y + DOT_ROW_GAP / 2}` + //go to top left position
+            `v ${newHeight}` + //draw line to left bottom corner
             `h ${size / 2}` + //draw line to left bottom corner + half of size right
-            `a ${size / 2} ${size / 2}, 0, 0, 0, 0 ${-size}` // draw rounded corner
+            `a ${newHeight / 2} ${newHeight / 2}, 0, 0, 0, 0 ${-newHeight}` /// draw rounded corner
         );
       }
     });
@@ -165,11 +168,11 @@ export default class QRDot {
     this._basicSquare({ x, y, size, rotation: 0 });
   }
 
-  _drawRounded({ x, y, size, getNeighbor }: DrawArgs): void {
+  _drawRounded({ x, y, size, getNeighbor, isCorner }: DrawArgs): void {
     const leftNeighbor = getNeighbor ? +getNeighbor(-1, 0) : 0;
     const rightNeighbor = getNeighbor ? +getNeighbor(1, 0) : 0;
-    const topNeighbor = getNeighbor ? +getNeighbor(0, -1) : 0;
-    const bottomNeighbor = getNeighbor ? +getNeighbor(0, 1) : 0;
+    const topNeighbor = getNeighbor && isCorner ? +getNeighbor(0, -1) : 0;
+    const bottomNeighbor = getNeighbor && isCorner ? +getNeighbor(0, 1) : 0;
 
     const neighborsCount = leftNeighbor + rightNeighbor + topNeighbor + bottomNeighbor;
 
@@ -179,7 +182,7 @@ export default class QRDot {
     }
 
     if (neighborsCount > 2 || (leftNeighbor && rightNeighbor) || (topNeighbor && bottomNeighbor)) {
-      this._basicSquare({ x, y, size, rotation: 0 });
+      this._basicSquare({ x, y, size, rotation: 0, isCorner });
       return;
     }
 

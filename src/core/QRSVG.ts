@@ -377,7 +377,8 @@ export default class QRSVG {
               x + col * dotSize,
               y + row * dotSize,
               dotSize,
-              (xOffset: number, yOffset: number): boolean => !!squareMask[row + yOffset]?.[col + xOffset]
+              (xOffset: number, yOffset: number): boolean => !!squareMask[row + yOffset]?.[col + xOffset],
+              true
             );
 
             if (dot._element && cornersSquareClipPath) {
@@ -434,7 +435,8 @@ export default class QRSVG {
               x + col * dotSize,
               y + row * dotSize,
               dotSize,
-              (xOffset: number, yOffset: number): boolean => !!dotMask[row + yOffset]?.[col + xOffset]
+              (xOffset: number, yOffset: number): boolean => !!dotMask[row + yOffset]?.[col + xOffset],
+              true
             );
 
             if (dot._element && cornersDotClipPath) {

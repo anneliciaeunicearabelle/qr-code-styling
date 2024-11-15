@@ -166,6 +166,7 @@ export type DrawArgs = {
   size: number;
   rotation?: number;
   getNeighbor?: GetNeighbor;
+  isCorner?: boolean;
 };
 
 export type BasicFigureDrawArgs = {
@@ -173,6 +174,7 @@ export type BasicFigureDrawArgs = {
   y: number;
   size: number;
   rotation?: number;
+  isCorner?: boolean;
 };
 
 export type RotateFigureArgs = {
